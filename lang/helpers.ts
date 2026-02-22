@@ -1,9 +1,10 @@
 import { moment } from 'obsidian';
 import en from './locale/en';
+import ja from './locale/ja';
 
 const localeMap: { [key: string]: any } = {
 	en,
-	// ja will be added in next step
+	ja,
 };
 
 export function t(str: keyof typeof en, vars?: { [key: string]: string }): string {
