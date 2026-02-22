@@ -3,6 +3,7 @@ import { exec, spawn } from 'child_process';
 import { promisify } from 'util';
 import { writeFileSync, unlinkSync } from 'fs';
 import { join } from 'path';
+import { t } from './lang/helpers';
 
 const execAsync = promisify(exec);
 
@@ -77,7 +78,7 @@ export default class ObsidianAICliPlugin extends Plugin {
 
 		this.addCommand({
 			id: 'open-claude-code',
-			name: 'Claude Code',
+			name: t('CLAUDE_CODE'),
 			callback: () => {
 				this.activateView(CLAUDE_VIEW_TYPE);
 			}
@@ -85,7 +86,7 @@ export default class ObsidianAICliPlugin extends Plugin {
 
 		this.addCommand({
 			id: 'open-gemini-cli',
-			name: 'Gemini CLI',
+			name: t('GEMINI_CLI'),
 			callback: () => {
 				this.activateView(GEMINI_VIEW_TYPE);
 			}
@@ -93,7 +94,7 @@ export default class ObsidianAICliPlugin extends Plugin {
 
 		this.addCommand({
 			id: 'open-codex',
-			name: 'OpenAI Codex',
+			name: t('OPENAI_CODEX'),
 			callback: () => {
 				this.activateView(CODEX_VIEW_TYPE);
 			}
@@ -101,7 +102,7 @@ export default class ObsidianAICliPlugin extends Plugin {
 
 		this.addCommand({
 			id: 'open-qwen',
-			name: 'Qwen Code',
+			name: t('QWEN_CODE'),
 			callback: () => {
 				this.activateView(QWEN_VIEW_TYPE);
 			}
@@ -392,10 +393,10 @@ class ToolView extends ItemView {
 
 	getDisplayText() {
 		switch (this.toolType) {
-			case 'claude': return "Claude Code";
-			case 'gemini': return "Gemini CLI";
-			case 'codex': return "OpenAI Codex";
-			case 'qwen': return "Qwen Code";
+			case 'claude': return t('CLAUDE_CODE');
+			case 'gemini': return t('GEMINI_CLI');
+			case 'codex': return t('OPENAI_CODEX');
+			case 'qwen': return t('QWEN_CODE');
 		}
 	}
 
@@ -420,37 +421,26 @@ class ToolView extends ItemView {
 		if (this.toolType === 'codex') {
 			const warningDiv = container.createDiv("codex-warning");
 			warningDiv.createEl("p", {
-				text: "⚠️ Note: OpenAI Codex only works correctly on macOS, Linux, and Windows under WSL2.",
+				text: t('CODEX_WARNING'),
 				cls: "platform-warning"
 			});
 		}
 
 		const promptContainer = container.createDiv("prompt-container");
-		promptContainer.createEl("label", { text: "Prompt:" });
+		promptContainer.createEl("label", { text: t('PROMPT_LABEL') });
 		
 		// Add collapsible help text
 		const helpDetails = promptContainer.createEl("details", { cls: "help-details" });
-		helpDetails.createEl("summary", { text: "💡 Tips and examples" });
+		helpDetails.createEl("summary", { text: t('TIPS_AND_EXAMPLES') });
 		const helpText = helpDetails.createEl("div", {
 			cls: "help-text"
 		});
-		helpText.innerHTML = `Open a file (markdown, text, image, pdf) and optionally select text for automatic context. Click the "Run" button to execute the prompt.<br>
-		You can use @file_path to reference other files in your vault. For example, "@other_note.md" or "@subfolder/other_note.md".<br>
-		<br><br>
-		<strong>Example prompts:</strong><br>
-		• "Translate the selected text to French"<br>
-		• "Fix grammar in this note"<br>
-		• "Summarize the main points and add them to a new Summary header at the top of the file"<br>
-		• "This image is a character sheet, create a new note with the full character information"<br>
-		• "Create a note named "todo-list". Use dataviewjs to list all the notes with the #todo tag in this vault."<br>
-		• "Give me 5 suggestions to make this character more interesting"<br>
-		• "Summarize this PDF in a new note"<br>
-		• "Make the style of this note the same as @other_note.md"`;
+		helpText.innerHTML = t('HELP_TEXT');
 		
 		this.promptInput = promptContainer.createEl("textarea", {
 			cls: "prompt-input",
 			attr: { 
-				placeholder: "Enter your prompt here...",
+				placeholder: t('PROMPT_PLACEHOLDER'),
 				rows: "4"
 			}
 		});
@@ -498,7 +488,7 @@ class ToolView extends ItemView {
 
 		// Prompt management section
 		const promptManagementContainer = promptContainer.createDiv("prompt-management");
-		promptManagementContainer.createEl("label", { text: "Saved Prompts:" });
+		promptManagementContainer.createEl("label", { text: t('SAVED_PROMPTS_LABEL') });
 		
 		const promptManagementButtons = promptManagementContainer.createDiv("prompt-management-buttons");
 		
@@ -506,19 +496,19 @@ class ToolView extends ItemView {
 			cls: "prompt-dropdown"
 		});
 		this.promptDropdown.createEl("option", { 
-			text: "Select a saved prompt...",
+			text: t('SELECT_SAVED_PROMPT'),
 			value: ""
 		});
 		this.promptDropdown.onchange = () => this.loadSelectedPrompt();
 		
 		this.loadPromptButton = promptManagementButtons.createEl("button", {
-			text: "Load",
+			text: t('LOAD_BUTTON'),
 			cls: "load-prompt-button"
 		});
 		this.loadPromptButton.onclick = () => this.loadSelectedPrompt();
 		
 		this.savePromptButton = promptManagementButtons.createEl("button", {
-			text: "Save",
+			text: t('SAVE_BUTTON'),
 			cls: "save-prompt-button"
 		});
 		this.savePromptButton.onclick = () => this.showSavePromptDialog();
@@ -526,13 +516,13 @@ class ToolView extends ItemView {
 		const buttonContainer = promptContainer.createDiv("button-container");
 		
 		this.runButton = buttonContainer.createEl("button", {
-			text: "Run",
+			text: t('RUN_BUTTON'),
 			cls: "run-button"
 		});
 		this.runButton.onclick = () => this.runTool();
 
 		this.cancelButton = buttonContainer.createEl("button", {
-			text: "Cancel",
+			text: t('CANCEL_BUTTON'),
 			cls: "cancel-button"
 		});
 		this.cancelButton.onclick = () => this.cancelTool();
@@ -540,18 +530,18 @@ class ToolView extends ItemView {
 
 		// Result section (always visible)
 		const resultContainer = container.createDiv("result-container");
-		resultContainer.createEl("h4", { text: "Result:" });
+		resultContainer.createEl("h4", { text: t('RESULT_LABEL') });
 		this.resultDiv = resultContainer.createDiv("result-text");
 		
 		// Command execution section (collapsible)
 		this.outputDiv = container.createDiv("output-container");
 		const executionDetails = this.outputDiv.createEl("details");
-		executionDetails.createEl("summary", { text: "Command Execution" });
+		executionDetails.createEl("summary", { text: t('COMMAND_EXECUTION') });
 		this.executionDiv = executionDetails.createDiv("execution-text");
 
 		this.contextDiv = container.createDiv("context-container");
 		const contextHeader = this.contextDiv.createDiv("context-header");
-		contextHeader.createEl("h4", { text: "Context:" });
+		contextHeader.createEl("h4", { text: t('CONTEXT_LABEL') });
 		
 		const checkboxContainer = contextHeader.createDiv("context-checkbox-container");
 		this.contextCheckbox = checkboxContainer.createEl("input", {
@@ -564,7 +554,7 @@ class ToolView extends ItemView {
 		});
 		
 		checkboxContainer.createEl("label", {
-			text: "Include context",
+			text: t('INCLUDE_CONTEXT'),
 			attr: { for: "context-checkbox" }
 		});
 		
@@ -1033,19 +1023,19 @@ class ToolView extends ItemView {
 				this.promptInput.value = promptContent;
 				this.promptInput.focus();
 			} else {
-				new Notice(`Prompt "${selectedPromptName}" not found`);
+				new Notice(t('PROMPT_NOT_FOUND', { name: selectedPromptName }));
 				this.refreshPromptDropdown(); // Refresh in case the file was modified externally
 			}
 		} catch (error) {
 			console.error('Failed to load prompt:', error);
-			new Notice('Failed to load prompt');
+			new Notice(t('FAILED_LOAD_PROMPT'));
 		}
 	}
 
 	async showSavePromptDialog() {
 		const promptContent = this.promptInput.value.trim();
 		if (!promptContent) {
-			new Notice('Please enter a prompt before saving');
+			new Notice(t('ENTER_PROMPT_NOTICE'));
 			return;
 		}
 
@@ -1053,11 +1043,11 @@ class ToolView extends ItemView {
 		const modal = new SavePromptModal(this.plugin.app, async (name: string) => {
 			try {
 				await this.plugin.savePrompt(name, promptContent);
-				new Notice(`Prompt "${name}" saved successfully`);
+				new Notice(t('PROMPT_SAVED_SUCCESS', { name: name }));
 				this.refreshPromptDropdown();
 			} catch (error) {
 				console.error('Failed to save prompt:', error);
-				new Notice(`Failed to save prompt: ${error.message}`);
+				new Notice(t('PROMPT_SAVE_FAILED', { error: error.message }));
 			}
 		});
 
@@ -1077,26 +1067,26 @@ class ToolView extends ItemView {
 		
 		if (file) {
 			contentDiv.createEl("p", { 
-				text: `📄 Current file: ${file.path}`,
+				text: `${t('CURRENT_FILE')}${file.path}`,
 				cls: "context-file"
 			});
 		} else {
 			contentDiv.createEl("p", { 
-				text: "📄 No file open",
+				text: t('NO_FILE_OPEN'),
 				cls: "context-no-file"
 			});
 		}
 		
 		if (selection && selection.trim()) {
 			const truncated = selection.length > 100 ? selection.substring(0, 100) + '...' : selection;
-			const lineRangeText = lineRange ? ` (lines ${lineRange.start}-${lineRange.end})` : '';
+			const lineRangeText = lineRange ? `${t('LINES_SUFFIX')}${lineRange.start}-${lineRange.end})` : '';
 			contentDiv.createEl("p", { 
-				text: `✏️ Selected: "${truncated}"${lineRangeText}`,
+				text: `${t('SELECTED_TEXT_PREFIX')}"${truncated}"${lineRangeText}`,
 				cls: "context-selection"
 			});
 		} else {
 			contentDiv.createEl("p", { 
-				text: "✏️ No text selected",
+				text: t('NO_TEXT_SELECTED'),
 				cls: "context-no-selection"
 			});
 		}
@@ -1104,7 +1094,7 @@ class ToolView extends ItemView {
 		// Add notice about text selection requirement
 		const noticeDiv = contentDiv.createDiv("selection-notice");
 		noticeDiv.createEl("p", {
-			text: "💡 Note: Text selection only works when the note is in edit mode, not preview mode.",
+			text: t('SELECTION_NOTICE'),
 			cls: "context-notice"
 		});
 	}
@@ -1114,16 +1104,16 @@ class ToolView extends ItemView {
 		
 		let prompt = this.promptInput.value.trim();
 		if (!prompt) {
-			new Notice('Please enter a prompt');
+			new Notice(t('ENTER_PROMPT_NOTICE'));
 			return;
 		}
 
 		this.isRunning = true;
 		this.runButton.disabled = true;
-		this.runButton.textContent = 'Running...';
+		this.runButton.textContent = t('RUNNING_BUTTON');
 		this.cancelButton.style.display = 'inline-block';
 		
-		await this.renderMarkdown('*Processing prompt...*');
+		await this.renderMarkdown(t('PROCESSING_PROMPT'));
 		this.executionDiv.textContent = '';
 
 		try {
@@ -1138,7 +1128,7 @@ class ToolView extends ItemView {
 				executionText += `\nPrompt content being sent via stdin:\n${'-'.repeat(50)}\n${commandInfo.stdinContent}\n${'-'.repeat(50)}\n`;
 			}
 			
-			executionText += '\nExecuting...\n';
+			executionText += `\n${t('COMMAND_EXECUTING')}\n`;
 			this.executionDiv.textContent = executionText;
 			console.log(commandInfo.command);
 			
@@ -1148,16 +1138,16 @@ class ToolView extends ItemView {
 			await this.renderMarkdown(`**Error:** ${error.message}`);
 			this.executionDiv.textContent += `\nError: ${error.message}`;
 			if (error.message.includes('ENOENT')) {
-				new Notice('CLI tool not found. Check the path in settings.');
+				new Notice(t('CLI_NOT_FOUND'));
 			} else if (error.message.includes('cancelled')) {
-				new Notice('Command was cancelled.');
+				new Notice(t('COMMAND_CANCELLED'));
 			} else {
-				new Notice('Command execution failed. Check output for details.');
+				new Notice(t('COMMAND_FAILED_NOTICE'));
 			}
 		} finally {
 			this.isRunning = false;
 			this.runButton.disabled = false;
-			this.runButton.textContent = 'Run';
+			this.runButton.textContent = t('RUN_BUTTON');
 			this.cancelButton.style.display = 'none';
 			this.currentProcess = null;
 		}
@@ -1224,14 +1214,14 @@ class ToolView extends ItemView {
 
 			this.currentProcess.on('close', async (code: number, signal: string) => {
 				if (code === 0) {
-					this.executionDiv.textContent += '\n\nCommand completed successfully.';
+					this.executionDiv.textContent += t('COMMAND_COMPLETED');
 					resolve();
 				} else if (signal === 'SIGTERM' || signal === 'SIGKILL') {
-					this.executionDiv.textContent += '\n\nCommand was cancelled.';
-					await this.renderMarkdown('*Command was cancelled.*');
+					this.executionDiv.textContent += t('COMMAND_CANCELLED_TEXT');
+					await this.renderMarkdown(`*${t('COMMAND_CANCELLED')}*`);
 					reject(new Error('Command was cancelled'));
 				} else {
-					this.executionDiv.textContent += `\n\nCommand failed with exit code ${code}`;
+					this.executionDiv.textContent += `${t('COMMAND_FAILED_EXIT_CODE')}${code}`;
 					reject(new Error(`Command failed with exit code ${code}`));
 				}
 			});
@@ -1364,7 +1354,7 @@ class SavePromptModal extends Modal {
 		const { contentEl } = this;
 		contentEl.empty();
 
-		contentEl.createEl('h2', { text: 'Save Prompt' });
+		contentEl.createEl('h2', { text: t('SAVE_PROMPT_TITLE') });
 
 		const form = contentEl.createEl('form');
 		form.style.display = 'flex';
@@ -1373,7 +1363,7 @@ class SavePromptModal extends Modal {
 
 		const inputContainer = form.createDiv();
 		inputContainer.createEl('label', { 
-			text: 'Prompt name:',
+			text: t('PROMPT_NAME_LABEL'),
 			attr: { for: 'prompt-name' }
 		});
 		
@@ -1381,7 +1371,7 @@ class SavePromptModal extends Modal {
 			type: 'text',
 			attr: { 
 				id: 'prompt-name',
-				placeholder: 'Enter a name for this prompt...'
+				placeholder: t('PROMPT_NAME_PLACEHOLDER')
 			}
 		});
 		this.nameInput.style.width = '100%';
@@ -1396,14 +1386,14 @@ class SavePromptModal extends Modal {
 		buttonContainer.style.justifyContent = 'flex-end';
 
 		const cancelButton = buttonContainer.createEl('button', {
-			text: 'Cancel',
+			text: t('CANCEL_BUTTON'),
 			type: 'button'
 		});
 		cancelButton.style.padding = '8px 16px';
 		cancelButton.onclick = () => this.close();
 
 		const saveButton = buttonContainer.createEl('button', {
-			text: 'Save',
+			text: t('SAVE_BUTTON'),
 			type: 'submit'
 		});
 		saveButton.style.padding = '8px 16px';
@@ -1419,7 +1409,7 @@ class SavePromptModal extends Modal {
 				await this.onSubmit(name);
 				this.close();
 			} else {
-				new Notice('Please enter a prompt name');
+				new Notice(t('PROMPT_NAME_REQUIRED'));
 			}
 		};
 
@@ -1446,14 +1436,14 @@ class ObsidianAICliSettingTab extends PluginSettingTab {
 
 		containerEl.empty();
 
-		containerEl.createEl('h2', {text: 'AI Tools Settings'});
+		containerEl.createEl('h2', {text: t('SETTINGS_TITLE')});
 
 		// Claude Code Settings
-		containerEl.createEl('h3', {text: 'Claude Code'});
+		containerEl.createEl('h3', {text: t('CLAUDE_CODE_SETTINGS')});
 
 		new Setting(containerEl)
-			.setName('CLI Path')
-			.setDesc('Path to the Claude Code CLI executable')
+			.setName(t('CLI_PATH_NAME'))
+			.setDesc(t('CLI_PATH_DESC', { tool: 'Claude Code' }))
 			.addText(text => text
 				.setPlaceholder('claude')
 				.setValue(this.plugin.settings.claudeCodePath)
@@ -1462,19 +1452,19 @@ class ObsidianAICliSettingTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 				}))
 			.addButton(button => button
-				.setButtonText('Test')
+				.setButtonText(t('TEST_BUTTON'))
 				.onClick(async () => {
 					try {
 						await execAsync(`${this.plugin.settings.claudeCodePath} --version`);
-						new Notice('Claude Code CLI found and working!');
+						new Notice(t('CLI_FOUND_SUCCESS', { tool: 'Claude Code' }));
 					} catch (error) {
-						new Notice('Claude Code CLI not found or not working. Check the path.');
+						new Notice(t('CLI_NOT_FOUND_ERROR', { tool: 'Claude Code' }));
 					}
 				}));
 
 		new Setting(containerEl)
-			.setName('Parameters')
-			.setDesc('Command line parameters and flags for Claude Code CLI')
+			.setName(t('PARAMETERS_NAME'))
+			.setDesc(t('PARAMETERS_DESC', { tool: 'Claude Code' }))
 			.addText(text => text
 				.setPlaceholder('--allowedTools Read,Edit,Write,Bash,Grep,MultiEdit,WebFetch,TodoRead,TodoWrite,WebSearch')
 				.setValue(this.plugin.settings.claudeParams)
@@ -1484,11 +1474,11 @@ class ObsidianAICliSettingTab extends PluginSettingTab {
 				}));
 
 		// Gemini CLI Settings
-		containerEl.createEl('h3', {text: 'Gemini CLI'});
+		containerEl.createEl('h3', {text: t('GEMINI_CLI_SETTINGS')});
 
 		new Setting(containerEl)
-			.setName('CLI Path')
-			.setDesc('Path to the Gemini CLI executable')
+			.setName(t('CLI_PATH_NAME'))
+			.setDesc(t('CLI_PATH_DESC', { tool: 'Gemini CLI' }))
 			.addText(text => text
 				.setPlaceholder('gemini')
 				.setValue(this.plugin.settings.geminiCliPath)
@@ -1497,19 +1487,19 @@ class ObsidianAICliSettingTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 				}))
 			.addButton(button => button
-				.setButtonText('Test')
+				.setButtonText(t('TEST_BUTTON'))
 				.onClick(async () => {
 					try {
 						await execAsync(`${this.plugin.settings.geminiCliPath} --version`);
-						new Notice('Gemini CLI found and working!');
+						new Notice(t('CLI_FOUND_SUCCESS', { tool: 'Gemini CLI' }));
 					} catch (error) {
-						new Notice('Gemini CLI not found or not working. Check the path.');
+						new Notice(t('CLI_NOT_FOUND_ERROR', { tool: 'Gemini CLI' }));
 					}
 				}));
 
 		new Setting(containerEl)
-			.setName('Parameters')
-			.setDesc('Command line parameters and flags for Gemini CLI')
+			.setName(t('PARAMETERS_NAME'))
+			.setDesc(t('PARAMETERS_DESC', { tool: 'Gemini CLI' }))
 			.addText(text => text
 				.setPlaceholder('--yolo')
 				.setValue(this.plugin.settings.geminiParams)
@@ -1519,20 +1509,20 @@ class ObsidianAICliSettingTab extends PluginSettingTab {
 				}));
 
 		// OpenAI Codex Settings
-		containerEl.createEl('h3', {text: 'OpenAI Codex'});
+		containerEl.createEl('h3', {text: t('OPENAI_CODEX_SETTINGS')});
 
 		// Add platform compatibility warning
 		const codexWarning = containerEl.createEl('div', {
 			cls: 'setting-item-description',
-			text: '⚠️ Note: OpenAI Codex only works correctly on macOS, Linux, and Windows under WSL2.'
+			text: t('CODEX_WARNING')
 		});
 		codexWarning.style.color = 'var(--text-warning)';
 		codexWarning.style.fontWeight = 'bold';
 		codexWarning.style.marginBottom = '10px';
 
 		new Setting(containerEl)
-			.setName('CLI Path')
-			.setDesc('Path to the OpenAI Codex CLI executable')
+			.setName(t('CLI_PATH_NAME'))
+			.setDesc(t('CLI_PATH_DESC', { tool: 'OpenAI Codex' }))
 			.addText(text => text
 				.setPlaceholder('codex')
 				.setValue(this.plugin.settings.codexPath)
@@ -1541,19 +1531,19 @@ class ObsidianAICliSettingTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 				}))
 			.addButton(button => button
-				.setButtonText('Test')
+				.setButtonText(t('TEST_BUTTON'))
 				.onClick(async () => {
 					try {
 						await execAsync(`${this.plugin.settings.codexPath} --version`);
-						new Notice('OpenAI Codex CLI found and working!');
+						new Notice(t('CLI_FOUND_SUCCESS', { tool: 'OpenAI Codex' }));
 					} catch (error) {
-						new Notice('OpenAI Codex CLI not found or not working. Check the path.');
+						new Notice(t('CLI_NOT_FOUND_ERROR', { tool: 'OpenAI Codex' }));
 					}
 				}));
 
 		new Setting(containerEl)
-			.setName('Parameters')
-			.setDesc('Command line parameters and flags for OpenAI Codex CLI')
+			.setName(t('PARAMETERS_NAME'))
+			.setDesc(t('PARAMETERS_DESC', { tool: 'OpenAI Codex' }))
 			.addText(text => text
 				.setPlaceholder('exec --full-auto --skip-git-repo-check')
 				.setValue(this.plugin.settings.codexParams)
@@ -1563,11 +1553,11 @@ class ObsidianAICliSettingTab extends PluginSettingTab {
 				}));
 
 		// Qwen Code Settings
-		containerEl.createEl('h3', {text: 'Qwen Code'});
+		containerEl.createEl('h3', {text: t('QWEN_CODE_SETTINGS')});
 
 		new Setting(containerEl)
-			.setName('CLI Path')
-			.setDesc('Path to the Qwen Code CLI executable')
+			.setName(t('CLI_PATH_NAME'))
+			.setDesc(t('CLI_PATH_DESC', { tool: 'Qwen Code' }))
 			.addText(text => text
 				.setPlaceholder('qwen')
 				.setValue(this.plugin.settings.qwenPath)
@@ -1576,19 +1566,19 @@ class ObsidianAICliSettingTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 				}))
 			.addButton(button => button
-				.setButtonText('Test')
+				.setButtonText(t('TEST_BUTTON'))
 				.onClick(async () => {
 					try {
 						await execAsync(`${this.plugin.settings.qwenPath} --version`);
-						new Notice('Qwen Code CLI found and working!');
+						new Notice(t('CLI_FOUND_SUCCESS', { tool: 'Qwen Code' }));
 					} catch (error) {
-						new Notice('Qwen Code CLI not found or not working. Check the path.');
+						new Notice(t('CLI_NOT_FOUND_ERROR', { tool: 'Qwen Code' }));
 					}
 				}));
 
 		new Setting(containerEl)
-			.setName('Parameters')
-			.setDesc('Command line parameters and flags for Qwen Code CLI')
+			.setName(t('PARAMETERS_NAME'))
+			.setDesc(t('PARAMETERS_DESC', { tool: 'Qwen Code' }))
 			.addText(text => text
 				.setPlaceholder('--yolo')
 				.setValue(this.plugin.settings.qwenParams)
@@ -1598,11 +1588,11 @@ class ObsidianAICliSettingTab extends PluginSettingTab {
 				}));
 
 		// Prompt Storage Settings
-		containerEl.createEl('h3', {text: 'Prompt Storage'});
+		containerEl.createEl('h3', {text: t('PROMPT_STORAGE_SETTINGS')});
 
 		new Setting(containerEl)
-			.setName('Prompt Storage File')
-			.setDesc('Path to the markdown file where saved prompts will be stored. The file will be created automatically when you save your first prompt.')
+			.setName(t('PROMPT_STORAGE_FILE_NAME'))
+			.setDesc(t('PROMPT_STORAGE_FILE_DESC'))
 			.addText(text => text
 				.setPlaceholder('ai-prompts.md')
 				.setValue(this.plugin.settings.promptStorageFile)
@@ -1612,7 +1602,7 @@ class ObsidianAICliSettingTab extends PluginSettingTab {
 				}));
 
 		containerEl.createEl('p', {
-			text: 'Note: Make sure the CLI tools are installed and accessible from your system PATH.',
+			text: t('PATH_NOTE'),
 			cls: 'setting-item-description'
 		});
 	}
