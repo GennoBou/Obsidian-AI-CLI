@@ -1252,41 +1252,42 @@ class ObsidianAICliSettingTab extends PluginSettingTab {
 
 		containerEl.createEl('h2', {text: t('SETTINGS_TITLE')});
 
-		// Helper function to create a card
-		const createCard = (
+		// Helper function to create a section with standard Obsidian classes
+		const createSection = (
 			title: string, 
 			isEnabled: boolean, 
 			onToggle: (value: boolean) => Promise<void>,
 			renderContent: (contentEl: HTMLElement) => void
 		) => {
-			const cardEl = containerEl.createDiv({ cls: 'ai-cli-card' });
-			const headerEl = cardEl.createDiv({ cls: 'ai-cli-card-header' });
-			headerEl.createEl('h3', { text: title });
+			const groupEl = containerEl.createDiv({ cls: 'setting-group' });
 			
-			const contentEl = cardEl.createDiv({ cls: 'ai-cli-card-content' });
-			if (!isEnabled) {
-				contentEl.addClass('is-hidden');
-			}
-
-			new Setting(headerEl)
+			// Header as a standard Obsidian heading setting
+			new Setting(groupEl)
+				.setHeading()
+				.setName(title)
 				.addToggle(toggle => toggle
 					.setValue(isEnabled)
 					.onChange(async (value) => {
 						await onToggle(value);
 						if (value) {
-							contentEl.removeClass('is-hidden');
+							itemsEl.removeClass('is-hidden');
 						} else {
-							contentEl.addClass('is-hidden');
+							itemsEl.addClass('is-hidden');
 						}
 						this.plugin.updateCommands();
 					}));
 
-			renderContent(contentEl);
+			const itemsEl = groupEl.createDiv({ cls: 'setting-items ai-cli-section-content' });
+			if (!isEnabled) {
+				itemsEl.addClass('is-hidden');
+			}
+
+			renderContent(itemsEl);
 		};
 
 		// Claude Code Settings
-		createCard(
-			t('CLAUDE_CODE_SETTINGS'),
+		createSection(
+			t('CLAUDE_CODE_SETTINGS').replace(/ Settings$/, ''), // Remove " Settings" if present to make it plain name
 			this.plugin.settings.enabledClaude,
 			async (value) => {
 				this.plugin.settings.enabledClaude = value;
@@ -1328,8 +1329,8 @@ class ObsidianAICliSettingTab extends PluginSettingTab {
 		);
 
 		// Gemini CLI Settings
-		createCard(
-			t('GEMINI_CLI_SETTINGS'),
+		createSection(
+			t('GEMINI_CLI_SETTINGS').replace(/ Settings$/, ''),
 			this.plugin.settings.enabledGemini,
 			async (value) => {
 				this.plugin.settings.enabledGemini = value;
@@ -1371,8 +1372,8 @@ class ObsidianAICliSettingTab extends PluginSettingTab {
 		);
 
 		// OpenAI Codex Settings
-		createCard(
-			t('OPENAI_CODEX_SETTINGS'),
+		createSection(
+			t('OPENAI_CODEX_SETTINGS').replace(/ Settings$/, ''),
 			this.plugin.settings.enabledCodex,
 			async (value) => {
 				this.plugin.settings.enabledCodex = value;
@@ -1423,8 +1424,8 @@ class ObsidianAICliSettingTab extends PluginSettingTab {
 		);
 
 		// Qwen Code Settings
-		createCard(
-			t('QWEN_CODE_SETTINGS'),
+		createSection(
+			t('QWEN_CODE_SETTINGS').replace(/ Settings$/, ''),
 			this.plugin.settings.enabledQwen,
 			async (value) => {
 				this.plugin.settings.enabledQwen = value;
