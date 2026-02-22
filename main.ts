@@ -1263,6 +1263,7 @@ class ObsidianAICliSettingTab extends PluginSettingTab {
 			const headerEl = cardEl.createDiv({ cls: 'ai-cli-card-header' });
 			headerEl.createEl('h3', { text: title });
 			
+			const contentEl = cardEl.createDiv({ cls: 'ai-cli-card-content' });
 			if (!isEnabled) {
 				contentEl.addClass('is-hidden');
 			}
