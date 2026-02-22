@@ -17,6 +17,10 @@ interface ObsidianAICliSettings {
 	codexParams: string;
 	qwenParams: string;
 	promptStorageFile: string;
+	enabledClaude: boolean;
+	enabledGemini: boolean;
+	enabledCodex: boolean;
+	enabledQwen: boolean;
 }
 
 const DEFAULT_SETTINGS: ObsidianAICliSettings = {
@@ -28,7 +32,11 @@ const DEFAULT_SETTINGS: ObsidianAICliSettings = {
 	geminiParams: '--yolo',
 	codexParams: 'exec --dangerously-bypass-approvals-and-sandbox --skip-git-repo-check',
 	qwenParams: '--yolo',
-	promptStorageFile: 'ai-prompts.md'
+	promptStorageFile: 'ai-prompts.md',
+	enabledClaude: true,
+	enabledGemini: true,
+	enabledCodex: true,
+	enabledQwen: true
 }
 
 const CLAUDE_VIEW_TYPE = 'claude-code-view';
@@ -76,39 +84,59 @@ export default class ObsidianAICliPlugin extends Plugin {
 			(leaf) => new ToolView(leaf, this, 'qwen')
 		);
 
-		this.addCommand({
-			id: 'open-claude-code',
-			name: t('CLAUDE_CODE'),
-			callback: () => {
-				this.activateView(CLAUDE_VIEW_TYPE);
-			}
-		});
-
-		this.addCommand({
-			id: 'open-gemini-cli',
-			name: t('GEMINI_CLI'),
-			callback: () => {
-				this.activateView(GEMINI_VIEW_TYPE);
-			}
-		});
-
-		this.addCommand({
-			id: 'open-codex',
-			name: t('OPENAI_CODEX'),
-			callback: () => {
-				this.activateView(CODEX_VIEW_TYPE);
-			}
-		});
-
-		this.addCommand({
-			id: 'open-qwen',
-			name: t('QWEN_CODE'),
-			callback: () => {
-				this.activateView(QWEN_VIEW_TYPE);
-			}
-		});
+		this.updateCommands();
 
 		this.addSettingTab(new ObsidianAICliSettingTab(this.app, this));
+	}
+
+	updateCommands() {
+		// Claude Code Command
+		this.removeCommand('open-claude-code');
+		if (this.settings.enabledClaude) {
+			this.addCommand({
+				id: 'open-claude-code',
+				name: t('CLAUDE_CODE'),
+				callback: () => {
+					this.activateView(CLAUDE_VIEW_TYPE);
+				}
+			});
+		}
+
+		// Gemini CLI Command
+		this.removeCommand('open-gemini-cli');
+		if (this.settings.enabledGemini) {
+			this.addCommand({
+				id: 'open-gemini-cli',
+				name: t('GEMINI_CLI'),
+				callback: () => {
+					this.activateView(GEMINI_VIEW_TYPE);
+				}
+			});
+		}
+
+		// OpenAI Codex Command
+		this.removeCommand('open-codex');
+		if (this.settings.enabledCodex) {
+			this.addCommand({
+				id: 'open-codex',
+				name: t('OPENAI_CODEX'),
+				callback: () => {
+					this.activateView(CODEX_VIEW_TYPE);
+				}
+			});
+		}
+
+		// Qwen Code Command
+		this.removeCommand('open-qwen');
+		if (this.settings.enabledQwen) {
+			this.addCommand({
+				id: 'open-qwen',
+				name: t('QWEN_CODE'),
+				callback: () => {
+					this.activateView(QWEN_VIEW_TYPE);
+				}
+			});
+		}
 	}
 
 	async activateView(viewType: string) {
@@ -1224,154 +1252,217 @@ class ObsidianAICliSettingTab extends PluginSettingTab {
 
 		containerEl.createEl('h2', {text: t('SETTINGS_TITLE')});
 
+		// Helper function to create a card
+		const createCard = (
+			title: string, 
+			isEnabled: boolean, 
+			onToggle: (value: boolean) => Promise<void>,
+			renderContent: (contentEl: HTMLElement) => void
+		) => {
+			const cardEl = containerEl.createDiv({ cls: 'ai-cli-card' });
+			const headerEl = cardEl.createDiv({ cls: 'ai-cli-card-header' });
+			headerEl.createEl('h3', { text: title });
+			
+			if (!isEnabled) {
+				contentEl.addClass('is-hidden');
+			}
+
+			new Setting(headerEl)
+				.addToggle(toggle => toggle
+					.setValue(isEnabled)
+					.onChange(async (value) => {
+						await onToggle(value);
+						if (value) {
+							contentEl.removeClass('is-hidden');
+						} else {
+							contentEl.addClass('is-hidden');
+						}
+						this.plugin.updateCommands();
+					}));
+
+			renderContent(contentEl);
+		};
+
 		// Claude Code Settings
-		containerEl.createEl('h3', {text: t('CLAUDE_CODE_SETTINGS')});
+		createCard(
+			t('CLAUDE_CODE_SETTINGS'),
+			this.plugin.settings.enabledClaude,
+			async (value) => {
+				this.plugin.settings.enabledClaude = value;
+				await this.plugin.saveSettings();
+			},
+			(contentEl) => {
+				new Setting(contentEl)
+					.setName(t('CLI_PATH_NAME'))
+					.setDesc(t('CLI_PATH_DESC', { tool: 'Claude Code' }))
+					.addText(text => text
+						.setPlaceholder('claude')
+						.setValue(this.plugin.settings.claudeCodePath)
+						.onChange(async (value) => {
+							this.plugin.settings.claudeCodePath = value;
+							await this.plugin.saveSettings();
+						}))
+					.addButton(button => button
+						.setButtonText(t('TEST_BUTTON'))
+						.onClick(async () => {
+							try {
+								await execAsync(`${this.plugin.settings.claudeCodePath} --version`);
+								new Notice(t('CLI_FOUND_SUCCESS', { tool: 'Claude Code' }));
+							} catch (error) {
+								new Notice(t('CLI_NOT_FOUND_ERROR', { tool: 'Claude Code' }));
+							}
+						}));
 
-		new Setting(containerEl)
-			.setName(t('CLI_PATH_NAME'))
-			.setDesc(t('CLI_PATH_DESC', { tool: 'Claude Code' }))
-			.addText(text => text
-				.setPlaceholder('claude')
-				.setValue(this.plugin.settings.claudeCodePath)
-				.onChange(async (value) => {
-					this.plugin.settings.claudeCodePath = value;
-					await this.plugin.saveSettings();
-				}))
-			.addButton(button => button
-				.setButtonText(t('TEST_BUTTON'))
-				.onClick(async () => {
-					try {
-						await execAsync(`${this.plugin.settings.claudeCodePath} --version`);
-						new Notice(t('CLI_FOUND_SUCCESS', { tool: 'Claude Code' }));
-					} catch (error) {
-						new Notice(t('CLI_NOT_FOUND_ERROR', { tool: 'Claude Code' }));
-					}
-				}));
-
-		new Setting(containerEl)
-			.setName(t('PARAMETERS_NAME'))
-			.setDesc(t('PARAMETERS_DESC', { tool: 'Claude Code' }))
-			.addText(text => text
-				.setPlaceholder('--allowedTools Read,Edit,Write,Bash,Grep,MultiEdit,WebFetch,TodoRead,TodoWrite,WebSearch')
-				.setValue(this.plugin.settings.claudeParams)
-				.onChange(async (value) => {
-					this.plugin.settings.claudeParams = value;
-					await this.plugin.saveSettings();
-				}));
+				new Setting(contentEl)
+					.setName(t('PARAMETERS_NAME'))
+					.setDesc(t('PARAMETERS_DESC', { tool: 'Claude Code' }))
+					.addText(text => text
+						.setPlaceholder('--allowedTools Read,Edit,Write,Bash,Grep,MultiEdit,WebFetch,TodoRead,TodoWrite,WebSearch')
+						.setValue(this.plugin.settings.claudeParams)
+						.onChange(async (value) => {
+							this.plugin.settings.claudeParams = value;
+							await this.plugin.saveSettings();
+						}));
+			}
+		);
 
 		// Gemini CLI Settings
-		containerEl.createEl('h3', {text: t('GEMINI_CLI_SETTINGS')});
+		createCard(
+			t('GEMINI_CLI_SETTINGS'),
+			this.plugin.settings.enabledGemini,
+			async (value) => {
+				this.plugin.settings.enabledGemini = value;
+				await this.plugin.saveSettings();
+			},
+			(contentEl) => {
+				new Setting(contentEl)
+					.setName(t('CLI_PATH_NAME'))
+					.setDesc(t('CLI_PATH_DESC', { tool: 'Gemini CLI' }))
+					.addText(text => text
+						.setPlaceholder('gemini')
+						.setValue(this.plugin.settings.geminiCliPath)
+						.onChange(async (value) => {
+							this.plugin.settings.geminiCliPath = value;
+							await this.plugin.saveSettings();
+						}))
+					.addButton(button => button
+						.setButtonText(t('TEST_BUTTON'))
+						.onClick(async () => {
+							try {
+								await execAsync(`${this.plugin.settings.geminiCliPath} --version`);
+								new Notice(t('CLI_FOUND_SUCCESS', { tool: 'Gemini CLI' }));
+							} catch (error) {
+								new Notice(t('CLI_NOT_FOUND_ERROR', { tool: 'Gemini CLI' }));
+							}
+						}));
 
-		new Setting(containerEl)
-			.setName(t('CLI_PATH_NAME'))
-			.setDesc(t('CLI_PATH_DESC', { tool: 'Gemini CLI' }))
-			.addText(text => text
-				.setPlaceholder('gemini')
-				.setValue(this.plugin.settings.geminiCliPath)
-				.onChange(async (value) => {
-					this.plugin.settings.geminiCliPath = value;
-					await this.plugin.saveSettings();
-				}))
-			.addButton(button => button
-				.setButtonText(t('TEST_BUTTON'))
-				.onClick(async () => {
-					try {
-						await execAsync(`${this.plugin.settings.geminiCliPath} --version`);
-						new Notice(t('CLI_FOUND_SUCCESS', { tool: 'Gemini CLI' }));
-					} catch (error) {
-						new Notice(t('CLI_NOT_FOUND_ERROR', { tool: 'Gemini CLI' }));
-					}
-				}));
-
-		new Setting(containerEl)
-			.setName(t('PARAMETERS_NAME'))
-			.setDesc(t('PARAMETERS_DESC', { tool: 'Gemini CLI' }))
-			.addText(text => text
-				.setPlaceholder('--yolo')
-				.setValue(this.plugin.settings.geminiParams)
-				.onChange(async (value) => {
-					this.plugin.settings.geminiParams = value;
-					await this.plugin.saveSettings();
-				}));
+				new Setting(contentEl)
+					.setName(t('PARAMETERS_NAME'))
+					.setDesc(t('PARAMETERS_DESC', { tool: 'Gemini CLI' }))
+					.addText(text => text
+						.setPlaceholder('--yolo')
+						.setValue(this.plugin.settings.geminiParams)
+						.onChange(async (value) => {
+							this.plugin.settings.geminiParams = value;
+							await this.plugin.saveSettings();
+						}));
+			}
+		);
 
 		// OpenAI Codex Settings
-		containerEl.createEl('h3', {text: t('OPENAI_CODEX_SETTINGS')});
+		createCard(
+			t('OPENAI_CODEX_SETTINGS'),
+			this.plugin.settings.enabledCodex,
+			async (value) => {
+				this.plugin.settings.enabledCodex = value;
+				await this.plugin.saveSettings();
+			},
+			(contentEl) => {
+				// Add platform compatibility warning
+				const codexWarning = contentEl.createEl('div', {
+					cls: 'setting-item-description',
+					text: t('CODEX_WARNING')
+				});
+				codexWarning.style.color = 'var(--text-warning)';
+				codexWarning.style.fontWeight = 'bold';
+				codexWarning.style.marginBottom = '10px';
 
-		// Add platform compatibility warning
-		const codexWarning = containerEl.createEl('div', {
-			cls: 'setting-item-description',
-			text: t('CODEX_WARNING')
-		});
-		codexWarning.style.color = 'var(--text-warning)';
-		codexWarning.style.fontWeight = 'bold';
-		codexWarning.style.marginBottom = '10px';
+				new Setting(contentEl)
+					.setName(t('CLI_PATH_NAME'))
+					.setDesc(t('CLI_PATH_DESC', { tool: 'OpenAI Codex' }))
+					.addText(text => text
+						.setPlaceholder('codex')
+						.setValue(this.plugin.settings.codexPath)
+						.onChange(async (value) => {
+							this.plugin.settings.codexPath = value;
+							await this.plugin.saveSettings();
+						}))
+					.addButton(button => button
+						.setButtonText(t('TEST_BUTTON'))
+						.onClick(async () => {
+							try {
+								await execAsync(`${this.plugin.settings.codexPath} --version`);
+								new Notice(t('CLI_FOUND_SUCCESS', { tool: 'OpenAI Codex' }));
+							} catch (error) {
+								new Notice(t('CLI_NOT_FOUND_ERROR', { tool: 'OpenAI Codex' }));
+							}
+						}));
 
-		new Setting(containerEl)
-			.setName(t('CLI_PATH_NAME'))
-			.setDesc(t('CLI_PATH_DESC', { tool: 'OpenAI Codex' }))
-			.addText(text => text
-				.setPlaceholder('codex')
-				.setValue(this.plugin.settings.codexPath)
-				.onChange(async (value) => {
-					this.plugin.settings.codexPath = value;
-					await this.plugin.saveSettings();
-				}))
-			.addButton(button => button
-				.setButtonText(t('TEST_BUTTON'))
-				.onClick(async () => {
-					try {
-						await execAsync(`${this.plugin.settings.codexPath} --version`);
-						new Notice(t('CLI_FOUND_SUCCESS', { tool: 'OpenAI Codex' }));
-					} catch (error) {
-						new Notice(t('CLI_NOT_FOUND_ERROR', { tool: 'OpenAI Codex' }));
-					}
-				}));
-
-		new Setting(containerEl)
-			.setName(t('PARAMETERS_NAME'))
-			.setDesc(t('PARAMETERS_DESC', { tool: 'OpenAI Codex' }))
-			.addText(text => text
-				.setPlaceholder('exec --full-auto --skip-git-repo-check')
-				.setValue(this.plugin.settings.codexParams)
-				.onChange(async (value) => {
-					this.plugin.settings.codexParams = value;
-					await this.plugin.saveSettings();
-				}));
+				new Setting(contentEl)
+					.setName(t('PARAMETERS_NAME'))
+					.setDesc(t('PARAMETERS_DESC', { tool: 'OpenAI Codex' }))
+					.addText(text => text
+						.setPlaceholder('exec --full-auto --skip-git-repo-check')
+						.setValue(this.plugin.settings.codexParams)
+						.onChange(async (value) => {
+							this.plugin.settings.codexParams = value;
+							await this.plugin.saveSettings();
+						}));
+			}
+		);
 
 		// Qwen Code Settings
-		containerEl.createEl('h3', {text: t('QWEN_CODE_SETTINGS')});
+		createCard(
+			t('QWEN_CODE_SETTINGS'),
+			this.plugin.settings.enabledQwen,
+			async (value) => {
+				this.plugin.settings.enabledQwen = value;
+				await this.plugin.saveSettings();
+			},
+			(contentEl) => {
+				new Setting(contentEl)
+					.setName(t('CLI_PATH_NAME'))
+					.setDesc(t('CLI_PATH_DESC', { tool: 'Qwen Code' }))
+					.addText(text => text
+						.setPlaceholder('qwen')
+						.setValue(this.plugin.settings.qwenPath)
+						.onChange(async (value) => {
+							this.plugin.settings.qwenPath = value;
+							await this.plugin.saveSettings();
+						}))
+					.addButton(button => button
+						.setButtonText(t('TEST_BUTTON'))
+						.onClick(async () => {
+							try {
+								await execAsync(`${this.plugin.settings.qwenPath} --version`);
+								new Notice(t('CLI_FOUND_SUCCESS', { tool: 'Qwen Code' }));
+							} catch (error) {
+								new Notice(t('CLI_NOT_FOUND_ERROR', { tool: 'Qwen Code' }));
+							}
+						}));
 
-		new Setting(containerEl)
-			.setName(t('CLI_PATH_NAME'))
-			.setDesc(t('CLI_PATH_DESC', { tool: 'Qwen Code' }))
-			.addText(text => text
-				.setPlaceholder('qwen')
-				.setValue(this.plugin.settings.qwenPath)
-				.onChange(async (value) => {
-					this.plugin.settings.qwenPath = value;
-					await this.plugin.saveSettings();
-				}))
-			.addButton(button => button
-				.setButtonText(t('TEST_BUTTON'))
-				.onClick(async () => {
-					try {
-						await execAsync(`${this.plugin.settings.qwenPath} --version`);
-						new Notice(t('CLI_FOUND_SUCCESS', { tool: 'Qwen Code' }));
-					} catch (error) {
-						new Notice(t('CLI_NOT_FOUND_ERROR', { tool: 'Qwen Code' }));
-					}
-				}));
-
-		new Setting(containerEl)
-			.setName(t('PARAMETERS_NAME'))
-			.setDesc(t('PARAMETERS_DESC', { tool: 'Qwen Code' }))
-			.addText(text => text
-				.setPlaceholder('--yolo')
-				.setValue(this.plugin.settings.qwenParams)
-				.onChange(async (value) => {
-					this.plugin.settings.qwenParams = value;
-					await this.plugin.saveSettings();
-				}));
+				new Setting(contentEl)
+					.setName(t('PARAMETERS_NAME'))
+					.setDesc(t('PARAMETERS_DESC', { tool: 'Qwen Code' }))
+					.addText(text => text
+						.setPlaceholder('--yolo')
+						.setValue(this.plugin.settings.qwenParams)
+						.onChange(async (value) => {
+							this.plugin.settings.qwenParams = value;
+							await this.plugin.saveSettings();
+						}));
+			}
+		);
 
 		// Prompt Storage Settings
 		containerEl.createEl('h3', {text: t('PROMPT_STORAGE_SETTINGS')});

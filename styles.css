@@ -220,3 +220,48 @@ If your plugin does not need CSS, delete this file.
 	background: var(--background-modifier-border);
 	cursor: not-allowed;
 }
+
+/* Settings Card Styles */
+.ai-cli-card {
+	border-radius: 8px;
+	padding: 16px;
+	margin-bottom: 20px;
+	background-color: var(--background-primary-alt);
+	transition: all 0.3s ease;
+}
+
+.ai-cli-card-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 0;
+	cursor: pointer;
+}
+
+.ai-cli-card-header h3 {
+	margin: 0 !important;
+}
+
+.ai-cli-card-content {
+	max-height: 500px;
+	overflow: hidden;
+	transition: max-height 0.3s ease-out, opacity 0.3s ease, padding 0.3s ease;
+	opacity: 1;
+	padding-top: 16px;
+	border-top: 1px solid var(--background-modifier-border);
+	margin-top: 16px;
+}
+
+.ai-cli-card-content.is-hidden {
+	max-height: 0;
+	opacity: 0;
+	padding-top: 0;
+	margin-top: 0;
+	border-top: none;
+	pointer-events: none;
+}
+
+.ai-cli-card .setting-item {
+	border-top: none;
+}
+
