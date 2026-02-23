@@ -1,5 +1,23 @@
 # Obsidian AI CLI
 
+**This is a fork of [BlackDragonBE/Obsidian-AI-CLI](https://github.com/BlackDragonBE/Obsidian-AI-CLI) with the following enhancements:**
+
+- **Multilingual support (i18n)**
+- **Added Japanese locale**
+- **Ability to hide unused AI tools from settings and command palette**
+- **CSS adjustments**
+
+---
+
+**このリポジトリは [BlackDragonBE/Obsidian-AI-CLI](https://github.com/BlackDragonBE/Obsidian-AI-CLI) を元に、以下の修正を加えました：**
+
+- **多言語化対応**
+- **日本語ロケール追加**
+- **使わないAIツールを設定・コマンドパレットから非表示にできるようにした**
+- **CSSを調整**
+
+---
+
 An Obsidian plugin that integrates multiple AI CLI tools directly into your workspace. Execute AI commands through convenient sidebar panels while automatically passing file context and selected text.
 
 ![Example 1](images/example1.gif)
