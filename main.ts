@@ -537,7 +537,7 @@ class ToolView extends ItemView {
 		
 		this.savePromptButton = promptManagementButtons.createEl("button", {
 			text: t('SAVE_BUTTON'),
-			cls: "save-prompt-button"
+			cls: "save-prompt-button mod-cta"
 		});
 		this.savePromptButton.onclick = () => this.showSavePromptDialog();
 
@@ -545,7 +545,7 @@ class ToolView extends ItemView {
 		
 		this.runButton = buttonContainer.createEl("button", {
 			text: t('RUN_BUTTON'),
-			cls: "run-button"
+			cls: "run-button mod-cta"
 		});
 		this.runButton.onclick = () => this.runTool();
 
@@ -1306,6 +1306,7 @@ class ObsidianAICliSettingTab extends PluginSettingTab {
 						}))
 					.addButton(button => button
 						.setButtonText(t('TEST_BUTTON'))
+						.setClass("mod-cta")
 						.onClick(async () => {
 							try {
 								await execAsync(`${this.plugin.settings.claudeCodePath} --version`);
@@ -1349,6 +1350,7 @@ class ObsidianAICliSettingTab extends PluginSettingTab {
 						}))
 					.addButton(button => button
 						.setButtonText(t('TEST_BUTTON'))
+						.setClass("mod-cta")
 						.onClick(async () => {
 							try {
 								await execAsync(`${this.plugin.settings.geminiCliPath} --version`);
@@ -1401,6 +1403,7 @@ class ObsidianAICliSettingTab extends PluginSettingTab {
 						}))
 					.addButton(button => button
 						.setButtonText(t('TEST_BUTTON'))
+						.setClass("mod-cta")
 						.onClick(async () => {
 							try {
 								await execAsync(`${this.plugin.settings.codexPath} --version`);
@@ -1444,6 +1447,7 @@ class ObsidianAICliSettingTab extends PluginSettingTab {
 						}))
 					.addButton(button => button
 						.setButtonText(t('TEST_BUTTON'))
+						.setClass("mod-cta")
 						.onClick(async () => {
 							try {
 								await execAsync(`${this.plugin.settings.qwenPath} --version`);

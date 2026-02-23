@@ -225,11 +225,11 @@ If your plugin does not need CSS, delete this file.
 .ai-cli-section-content {
 	max-height: 500px;
 	overflow: hidden;
-	transition: max-height 0.3s ease-out, opacity 0.3s ease;
 	opacity: 1;
 }
 
 .ai-cli-section-content.is-hidden {
+	padding: 0px;
 	max-height: 0;
 	opacity: 0;
 	pointer-events: none;
